@@ -1,0 +1,53 @@
+{
+  // File watches
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.ruff_cache/**": true
+  },
+  // General
+  "[json][jsonc][jsonl][yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[toml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
+  // Python
+  "flake8.enabled": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.languageServer": "None",
+  "python.analysis.typeCheckingMode": "off",
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports": "never",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "ruff.enable": true,
+  "ruff.lint.enable": true,
+  "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+  "ruff.configurationPreference": "filesystemFirst",
+  "ty.path": ["${workspaceFolder}/.venv/bin/ty"],
+  "ty.diagnosticMode": "workspace",
+  "ty.disableLanguageServices": false,
+  "ty.inlayHints.callArgumentNames": true,
+  "ty.inlayHints.variableTypes": false,
+  // Jupyter
+  "notebook.markup.fontSize": 14,
+  "notebook.lineNumbers": "off",
+  "notebook.formatOnSave.enabled": true,
+  "notebook.formatOnCellExecution": true
+}
