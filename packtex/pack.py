@@ -105,14 +105,10 @@ class Packer:
         self._masked: dict[Path, str] = {}
         self._encodings: dict[Path, str] = {}
 
-        # The archive itself and our scratch directory must never be packed,
-        # regardless of what the user passes to --exclude.
         patterns = [TEMP_DIR_NAME, f'{TEMP_DIR_NAME}/*']
         with contextlib.suppress(ValueError):
             patterns.append(self.output.resolve().relative_to(self.root).as_posix())
         self._exclude = tuple(patterns) + tuple(options.exclude)
-
-    # -- filesystem helpers ------------------------------------------------
 
     def _read(self, rel: Path) -> str:
         """Read a source file, remembering the encoding it decoded with."""
