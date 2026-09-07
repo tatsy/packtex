@@ -60,7 +60,7 @@ class Source(NamedTuple):
 class Options:
     """Everything the CLI can tune."""
 
-    output: Path = Path('sources.zip')
+    output: str = 'sources.zip'
     root: Optional[Path] = None
     compress: bool = False
     dpi: int = 400
@@ -74,12 +74,14 @@ class Options:
 
 
 class Packer:
-    """Resolves what a document needs and writes it to a ZIP archive."""
+    """
+    Resolves what a document needs and writes it to a ZIP archive.
+    """
 
-    def __init__(self, main: Path, options: Options):
+    def __init__(self, main: str, options: Options):
         self.options = options
 
-        absolute_main = main.expanduser().resolve()
+        absolute_main = Path(main).expanduser().resolve()
         if not absolute_main.is_file():
             raise PackError(f'{main} is not a file')
 
@@ -96,7 +98,7 @@ class Packer:
             ) from None
 
         self.temp = self.root / TEMP_DIR_NAME
-        self.output = options.output.expanduser()
+        self.output = Path(options.output).expanduser()
         self.missing: list[str] = []
 
         self._texts: dict[Path, str] = {}

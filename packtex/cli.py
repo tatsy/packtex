@@ -28,9 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
         help='archive to write (default: %(default)s)')
     parser.add_argument('--root', type=str, default=None,
         help='project root; archive paths are relative to it (default: the main file directory)')
-    parser.add_argument('--exclude', nargs='+', default=[], metavar='PATTERN',
+    parser.add_argument('--exclude', nargs='+', default=[], action='extend', metavar='PATTERN',
         help='glob patterns to leave out, in addition to the built-in exclusions')
-    parser.add_argument('--include', nargs='+', default=[], metavar='PATTERN',
+    parser.add_argument('--include', nargs='+', default=[], action='extend', metavar='PATTERN',
         help='glob patterns to add for files the document does not reference directly')
     parser.add_argument('--keep-comments', action='store_true',
         help='keep comment text in .tex files')
