@@ -1,14 +1,3 @@
-"""Collect the sources a LaTeX document actually needs, and archive them.
-
-The collector starts from the main file and follows what the document really
-references - ``\\input``, ``\\includegraphics``, ``\\usepackage`` and friends -
-rather than sweeping a directory by extension.  That keeps build artefacts and
-unrelated drafts out of the archive, which is the whole point of the tool.
-
-Every archived file keeps its path relative to the project root, so the
-extracted tree compiles exactly like the original.
-"""
-
 import shutil
 import fnmatch
 import logging

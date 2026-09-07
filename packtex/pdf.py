@@ -1,4 +1,6 @@
-"""PDF re-compression through Ghostscript."""
+"""
+PDF re-compression through Ghostscript.
+"""
 
 import shutil
 import logging

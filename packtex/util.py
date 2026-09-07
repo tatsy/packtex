@@ -1,4 +1,6 @@
-"""Small shared helpers."""
+"""
+Shared helpers
+"""
 
 
 def human_size(size: int) -> str:
@@ -9,4 +11,5 @@ def human_size(size: int) -> str:
             precision = 0 if unit == 'B' else 1
             return f'{value:.{precision}f} {unit}'
         value /= 1024
+
     raise AssertionError('unreachable')

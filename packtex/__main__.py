@@ -1,4 +1,5 @@
-"""Entry point for ``python -m packtex``.
+"""
+Entry point for ``python -m packtex``.
 
 The installed ``packtex`` console script calls :func:`packtex.cli.main`
 directly; this module makes the same entry point reachable without relying on

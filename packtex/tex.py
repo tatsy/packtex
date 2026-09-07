@@ -1,4 +1,5 @@
-"""Pure-text parsing helpers for LaTeX sources.
+"""
+Pure-text parsing helpers for LaTeX sources.
 
 Nothing here touches the filesystem: every function takes source text and
 returns plain data, which keeps the fiddly brace and comment handling unit
