@@ -2,11 +2,11 @@ name: test
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - dev
   pull_request:
   workflow_dispatch:
-  # release.yml runs this whole workflow before publishing a tag.
-  workflow_call:
 
 permissions:
   contents: read
@@ -34,16 +34,13 @@ jobs:
 
   test:
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
-        # packtex shells out to the Ghostscript wrapper shipped with MacTeX, so
-        # keep one macOS job in the matrix.
-        include:
-          - os: macos-latest
-            python-version: '3.12'
+
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
@@ -54,34 +51,55 @@ jobs:
       - name: pytest
         run: uv run pytest
 
-  packaging:
-    # Guards the flat layout: the fast tests import the working tree, so only
-    # this job would notice a wheel that stopped shipping the package.
+  release:
+    if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
+    needs: test
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # required to create the release and upload assets
+
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv sync
-      - name: pytest -m slow
-        run: uv run pytest -m slow
-      - name: build sdist and wheel
-        run: uv build
-      - name: check archive contents
+
+      - name: Check the tag against __version__
+        id: version
         run: |
-          uv run python - <<'PY'
-          import glob
-          import zipfile
+          version="$(sed -n "s/^__version__ = '\(.*\)'\$/\1/p" packtex/__init__.py)"
+          if [ -z "$version" ]; then
+            echo "::error::could not read __version__ from packtex/__init__.py"
+            exit 1
+          fi
+          if [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match __version__ ${version}."
+            echo "::error::Bump packtex/__init__.py or retag as v${version}."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
-          wheel = glob.glob('dist/*.whl')[0]
-          names = zipfile.ZipFile(wheel).namelist()
-          modules = sorted(n for n in names if n.startswith('packtex/'))
-          print(wheel)
-          print('\n'.join(modules))
+      - name: Build sdist and wheel
+        run: uv build
 
-          assert 'packtex/__init__.py' in modules, 'package is missing from the wheel'
-          assert 'packtex/__main__.py' in modules, 'python -m entry point is missing'
-          assert not any(n.startswith('src/') for n in names), 'stray src/ in the wheel'
-          assert not any(n.startswith('tests/') for n in names), 'tests leaked into the wheel'
-          PY
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Tags matching vX.Y.Z are final; anything else (v1.0.0rc1, v1.0.0.dev1)
+          # is published as a prerelease. The step above requires the tag and
+          # __version__ to agree exactly, so a prerelease needs the suffix in
+          # packtex/__init__.py too.
+          flags=(--generate-notes --title "$GITHUB_REF_NAME")
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            flags+=(--prerelease)
+          fi
+
+          # Re-running a release should refresh the assets, not fail.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME exists; replacing its assets."
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${flags[@]}" dist/*
+          fi

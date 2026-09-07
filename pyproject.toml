@@ -3,6 +3,7 @@ name = "packtex"
 dynamic = ["version"]
 description = "Packing LaTeX sources and figures for paper submission."
 authors = [{ name = "Tatsuya Yatagawa", email = "tatsy.mail@gmail.com" }]
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["coloredlogs>=15.0.1", "joblib>=1.5.3"]
@@ -25,15 +26,6 @@ packages = ["packtex"]
 
 [tool.hatch.build.targets.sdist]
 include = ["packtex", "tests", "README.md", "LICENSE"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-# The flat layout puts the working tree on sys.path, so the fast tests cannot
-# tell a broken wheel from a working one. test_packaging.py closes that gap by
-# installing the project for real; it is opt-in because it builds and creates a
-# virtualenv. Run it with `pytest -m slow`.
-addopts = "-q -m 'not slow'"
-markers = ["slow: builds and installs the project into a temporary virtualenv"]
 
 [tool.ruff]
 target-version = "py39"
@@ -64,3 +56,8 @@ include = ["packtex", "tests"]
 
 [tool.ty.terminal]
 error-on-warning = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not slow'"
+markers = ["slow: builds and installs the project into a temporary virtualenv"]
