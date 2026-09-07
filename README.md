@@ -13,7 +13,12 @@ compiles exactly like the original.
 ## Install
 
 ```sh
-uv sync          # development
+pip install git+https://github.com/tatsy/packtex.git
+```
+
+Or from a checkout:
+
+```sh
 uv tool install .  # or: pip install .
 ```
 
@@ -21,6 +26,13 @@ uv tool install .  # or: pip install .
 
 ```sh
 packtex main.tex -o sources.zip
+```
+
+The `packtex` console script and the module entry point are equivalent, so this
+works too — handy when the script directory is not on `PATH`:
+
+```sh
+python -m packtex main.tex -o sources.zip
 ```
 
 Common options:
@@ -64,16 +76,50 @@ uv run pre-commit install  # once, to enable the ruff hooks
 ```
 
 ```sh
-uv run pytest        # tests
-uv run ruff check .  # lint
-uv run ruff format . # format
-uv run ty check      # type check
+uv run pytest         # tests
+uv run pytest -m slow # packaging tests (see below)
+uv run ruff check .   # lint
+uv run ruff format .  # format
+uv run ty check       # type check
 ```
 
 `ruff check` and `ruff format` also run automatically on staged files via
 [.pre-commit-config.yaml](.pre-commit-config.yaml). Both read their settings
 from `pyproject.toml`, so the hooks and the commands above behave identically.
 Run `uv run pre-commit run --all-files` to check the whole tree.
+
+### The `slow` marker
+
+The project uses a flat layout, so the working tree is on `sys.path` and the
+ordinary tests would keep passing even if the build configuration stopped
+shipping the package. [tests/test_packaging.py](tests/test_packaging.py) closes
+that gap: it installs the project into a throwaway virtualenv and drives the
+installed copy, checking that `python -m packtex`, the console script and every
+module survive the build. It is excluded by default because it needs a few
+seconds and network access on first run — but it is the only thing standing
+between a packaging mistake and a broken `pip install`, so run it before
+tagging a release.
+
+### Releasing
+
+[.github/workflows/test.yml](.github/workflows/test.yml) runs lint, the Python
+3.9–3.13 matrix and the packaging tests on every push and pull request.
+[.github/workflows/release.yml](.github/workflows/release.yml) reuses that same
+workflow and, once it is green, builds the wheel and sdist and attaches them to
+a GitHub Release.
+
+To cut a release, bump `__version__` in [packtex/\_\_init\_\_.py](packtex/__init__.py)
+and push a matching tag:
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow refuses to publish when the tag and `__version__` disagree, so both
+always describe the same artifact. Tags of the form `vX.Y.Z` are published as
+final releases; anything else (`v0.3.0rc1`, `v0.3.0.dev1`) is marked as a
+prerelease — which means `__version__` has to carry the same suffix.
 
 ## License
 

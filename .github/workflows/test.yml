@@ -1,0 +1,87 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # release.yml runs this whole workflow before publishing a tag.
+  workflow_call:
+
+permissions:
+  contents: read
+
+# A new push to the same branch makes the in-flight run obsolete.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: ruff check
+        run: uv run ruff check --output-format=github .
+      - name: ruff format
+        run: uv run ruff format --check .
+      - name: ty
+        run: uv run ty check
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        # packtex shells out to the Ghostscript wrapper shipped with MacTeX, so
+        # keep one macOS job in the matrix.
+        include:
+          - os: macos-latest
+            python-version: '3.12'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync
+      - name: pytest
+        run: uv run pytest
+
+  packaging:
+    # Guards the flat layout: the fast tests import the working tree, so only
+    # this job would notice a wheel that stopped shipping the package.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: pytest -m slow
+        run: uv run pytest -m slow
+      - name: build sdist and wheel
+        run: uv build
+      - name: check archive contents
+        run: |
+          uv run python - <<'PY'
+          import glob
+          import zipfile
+
+          wheel = glob.glob('dist/*.whl')[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          modules = sorted(n for n in names if n.startswith('packtex/'))
+          print(wheel)
+          print('\n'.join(modules))
+
+          assert 'packtex/__init__.py' in modules, 'package is missing from the wheel'
+          assert 'packtex/__main__.py' in modules, 'python -m entry point is missing'
+          assert not any(n.startswith('src/') for n in names), 'stray src/ in the wheel'
+          assert not any(n.startswith('tests/') for n in names), 'tests leaked into the wheel'
+          PY

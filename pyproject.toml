@@ -18,14 +18,22 @@ requires = ["hatchling>=1.0.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "src/packtex/__init__.py"
+path = "packtex/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/packtex"]
+packages = ["packtex"]
+
+[tool.hatch.build.targets.sdist]
+include = ["packtex", "tests", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+# The flat layout puts the working tree on sys.path, so the fast tests cannot
+# tell a broken wheel from a working one. test_packaging.py closes that gap by
+# installing the project for real; it is opt-in because it builds and creates a
+# virtualenv. Run it with `pytest -m slow`.
+addopts = "-q -m 'not slow'"
+markers = ["slow: builds and installs the project into a temporary virtualenv"]
 
 [tool.ruff]
 target-version = "py39"
@@ -52,7 +60,7 @@ python = ".venv"
 python-version = "3.9"
 
 [tool.ty.src]
-include = ["src", "tests"]
+include = ["packtex", "tests"]
 
 [tool.ty.terminal]
 error-on-warning = false

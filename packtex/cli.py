@@ -1,6 +1,5 @@
 """Command line entry point."""
 
-import sys
 import logging
 import argparse
 from typing import Optional
@@ -120,7 +119,3 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         logger.error('%s', error)
         return 1
     return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())

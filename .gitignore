@@ -6,6 +6,11 @@
 *.py[cod]
 __pycache__
 
+# build artifacts
+dist/
+build/
+*.egg-info
+
 # packtex output
 .packtex/
 sources.zip
