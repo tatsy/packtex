@@ -1,6 +1,11 @@
 .mypy_cache
 .ruff_cache
+.pytest_cache
 .venv
 
 *.py[cod]
 __pycache__
+
+# packtex output
+.packtex/
+sources.zip

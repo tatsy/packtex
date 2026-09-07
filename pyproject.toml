@@ -2,22 +2,30 @@
 name = "packtex"
 dynamic = ["version"]
 description = "Packing LaTeX sources and figures for paper submission."
+authors = [{ name = "Tatsuya Yatagawa", email = "tatsy.mail@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["coloredlogs>=15.0.1", "joblib>=1.5.3"]
 
+[project.scripts]
+packtex = "packtex.cli:main"
+
 [dependency-groups]
-dev = ["ruff>=0.16.3", "ty>=0.0.73"]
+dev = ["ruff>=0.16.3", "ty>=0.0.73", "pytest>=8.0.0", "pre-commit>=4.0.0"]
 
 [build-system]
 requires = ["hatchling>=1.0.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "src/__init__.py"
+path = "src/packtex/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/packtex"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
 
 [tool.ruff]
 target-version = "py39"
@@ -44,7 +52,7 @@ python = ".venv"
 python-version = "3.9"
 
 [tool.ty.src]
-include = ["src"]
+include = ["src", "tests"]
 
 [tool.ty.terminal]
 error-on-warning = false
